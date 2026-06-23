@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="うさぎ定石のローズ系分岐を、4手ずつ反復して覚えるオセロ練習ゲーム"
+    />
+    <meta name="theme-color" content="#f3f0e8" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="うさぎ道場" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>うさぎ道場 — ローズ定石4手ドリル</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Kiwi+Maru:wght@400;500&family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <button class="brand" id="homeButton" aria-label="定石一覧へ戻る">
+          <span class="brand-mark" aria-hidden="true">
+            <span class="ear ear-left"></span>
+            <span class="ear ear-right"></span>
+            <span class="rabbit-face">●</span>
+          </span>
+          <span>
+            <strong>うさぎ道場</strong>
+            <small>RABBIT OPENING LAB</small>
+          </span>
+        </button>
+        <div class="header-status">
+          <span class="status-dot"></span>
+          <span>ローズ系を練習中</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="home-screen" id="homeScreen">
+          <div class="hero">
+            <div>
+              <p class="eyebrow"><span>01</span> まずは、ここだけ。</p>
+              <h1>
+                ローズから先を、<br />
+                <em>4手ずつ</em>身体に入れる。
+              </h1>
+              <p class="hero-copy">
+                長い棋譜は、いったん忘れよう。形を選んで、最善手を4回。
+                間違えたら即終了。だから、正しい形だけが記憶に残る。
+              </p>
+            </div>
+            <div class="hero-orbit" aria-hidden="true">
+              <span class="orbit-label">ROSE</span>
+              <div class="mini-board" id="miniBoard"></div>
+              <span class="orbit-note">4 MOVES<br />TO CLEAR</span>
+            </div>
+          </div>
+
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow"><span>02</span> 今日の稽古</p>
+              <h2>覚えたい形を選ぶ</h2>
+            </div>
+            <div class="total-progress">
+              <span id="masteredCount">0</span><small>/ 6 習得</small>
+            </div>
+          </div>
+
+          <div class="opening-grid" id="openingGrid"></div>
+
+          <aside class="rule-strip">
+            <div class="rule-number">4</div>
+            <div>
+              <strong>あなたが打つのは、たった4手。</strong>
+              <span>相手の応手は自動。迷いやすい分岐だけを、短く何度も。</span>
+            </div>
+            <div class="rule-tags">
+              <span>ミスで終了</span>
+              <span>ヒントあり</span>
+              <span>記録を保存</span>
+            </div>
+          </aside>
+        </section>
+
+        <section class="game-screen" id="gameScreen" hidden>
+          <div class="game-heading">
+            <button class="back-button" id="backButton">
+              <span>←</span> 定石を選び直す
+            </button>
+            <div class="game-title">
+              <p class="eyebrow"><span id="routeCode">S</span> SELECTED ROUTE</p>
+              <h1 id="routeName">ローズ基本形</h1>
+            </div>
+            <div class="attempt-pill">
+              <span>連続正解</span>
+              <strong id="streakCount">0</strong>
+            </div>
+          </div>
+
+          <div class="game-layout">
+            <div class="board-column">
+              <div class="board-frame">
+                <div class="coordinate coordinate-top">
+                  <span>A</span><span>B</span><span>C</span><span>D</span>
+                  <span>E</span><span>F</span><span>G</span><span>H</span>
+                </div>
+                <div class="coordinate coordinate-side">
+                  <span>1</span><span>2</span><span>3</span><span>4</span>
+                  <span>5</span><span>6</span><span>7</span><span>8</span>
+                </div>
+                <div class="board" id="board" role="grid" aria-label="オセロ盤"></div>
+              </div>
+              <p class="board-caption">
+                <span class="black-disc"></span>
+                あなたは黒。置ける場所から最善手を選んでください。
+              </p>
+            </div>
+
+            <aside class="lesson-panel">
+              <div class="step-label">CURRENT LESSON</div>
+              <div class="lesson-top">
+                <div class="route-icon" id="routeIcon">基</div>
+                <div>
+                  <strong id="panelRouteName">ローズ基本形</strong>
+                  <span id="panelRouteSub">Standard / S</span>
+                </div>
+              </div>
+
+              <div class="progress-block">
+                <div class="progress-copy">
+                  <span>4手ドリル</span>
+                  <strong><b id="currentStep">1</b> / 4</strong>
+                </div>
+                <div class="step-dots" id="stepDots">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+
+              <div class="message-card" id="messageCard">
+                <span class="message-kicker" id="messageKicker">YOUR TURN</span>
+                <h2 id="messageTitle">黒の最善手は？</h2>
+                <p id="messageText">
+                  ローズの形からスタート。盤面を見て、次の一手を選ぼう。
+                </p>
+              </div>
+
+              <div class="move-history">
+                <div class="history-head">
+                  <span>このドリルの着手</span>
+                  <button id="replayButton">最初から見る ↺</button>
+                </div>
+                <div class="history-list" id="historyList"></div>
+              </div>
+
+              <div class="lesson-actions">
+                <button class="hint-button" id="hintButton">
+                  <span>⌁</span> 1手だけヒント
+                </button>
+                <button class="reset-button" id="resetButton" aria-label="やり直す">↻</button>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="result-overlay" id="resultOverlay" hidden>
+      <div class="result-dialog">
+        <div class="result-mark" id="resultMark">×</div>
+        <p class="eyebrow" id="resultEyebrow">GAME OVER</p>
+        <h2 id="resultTitle">そこじゃない。</h2>
+        <p id="resultText">正解は C2。もう一度、同じ形から覚え直そう。</p>
+        <div class="result-actions">
+          <button class="primary-button" id="tryAgainButton">同じ定石でもう一度</button>
+          <button class="text-button" id="chooseAnotherButton">ほかの定石を選ぶ</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="install-guide" id="installGuide" hidden>
+      <button class="install-close" id="installClose" aria-label="閉じる">×</button>
+      <img src="./assets/icons/icon-192.png" alt="" />
+      <div>
+        <strong>ホーム画面に置こう</strong>
+        <span>Safariの <b>共有</b> から「ホーム画面に追加」を選ぶと、アプリのように使えます。</span>
+      </div>
+      <div class="share-symbol" aria-hidden="true">↑</div>
+    </aside>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

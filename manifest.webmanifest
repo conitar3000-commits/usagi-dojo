@@ -1,0 +1,30 @@
+{
+  "id": "./",
+  "name": "うさぎ道場 — オセロ定石ドリル",
+  "short_name": "うさぎ道場",
+  "description": "うさぎ定石のローズ系分岐を、4手ずつ反復して覚えるオセロ練習ゲーム",
+  "lang": "ja",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#f3f0e8",
+  "theme_color": "#f3f0e8",
+  "categories": ["games", "education"],
+  "icons": [
+    {
+      "src": "./assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
