@@ -1,4 +1,4 @@
-const CACHE_NAME = "rabbit-opening-v3";
+const CACHE_NAME = "rabbit-opening-v4";
 const APP_SHELL = [
   "./",
   "./index.html",

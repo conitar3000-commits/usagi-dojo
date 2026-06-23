@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="うさぎ定石のローズ系分岐を、4手ずつ反復して覚えるオセロ練習ゲーム"
+      content="うさぎ定石の形を確認し、8手ドリルと評価値つき対局で覚えるオセロ練習アプリ"
     />
     <meta name="theme-color" content="#f3f0e8" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="うさぎ道場" />
     <meta name="format-detection" content="telephone=no" />
-    <title>うさぎ道場 — ローズ定石4手ドリル</title>
+    <title>うさぎ道場 — ローズ定石8手ドリル</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
@@ -52,17 +52,17 @@
               <p class="eyebrow"><span>01</span> まずは、ここだけ。</p>
               <h1>
                 ローズから先を、<br />
-                <em>4手ずつ</em>身体に入れる。
+                <em>8手ずつ</em>身体に入れる。
               </h1>
               <p class="hero-copy">
-                長い棋譜は、いったん忘れよう。形を選んで、黒白交互に最善手を4回。
-                間違えたら即終了。だから、正しい形だけが記憶に残る。
+                まず定石ができるまでを一手ずつ確認。そのあと黒か白を選び、
+                最善手を8手追いかける。クリア後は評価値を見ながらそのまま対局できます。
               </p>
             </div>
             <div class="hero-orbit" aria-hidden="true">
               <span class="orbit-label">ROSE</span>
               <div class="mini-board" id="miniBoard"></div>
-              <span class="orbit-note">4 MOVES<br />TO CLEAR</span>
+              <span class="orbit-note">8 MOVES<br />TO CLEAR</span>
             </div>
           </div>
 
@@ -79,15 +79,15 @@
           <div class="opening-grid" id="openingGrid"></div>
 
           <aside class="rule-strip">
-            <div class="rule-number">4</div>
+            <div class="rule-number">8</div>
             <div>
-              <strong>あなたが打つのは、たった4手。</strong>
-              <span>黒と白、両方の最善手を打つ。迷いやすい分岐だけを、短く何度も。</span>
+              <strong>形を見てから、8手の定石ゲームへ。</strong>
+              <span>黒・白を選択可能。クリア後は評価値つきの一人対局に続きます。</span>
             </div>
             <div class="rule-tags">
               <span>ミスで終了</span>
-              <span>ヒントあり</span>
-              <span>記録を保存</span>
+              <span>評価値あり</span>
+              <span>1手戻せる</span>
             </div>
           </aside>
         </section>
@@ -127,7 +127,7 @@
             </div>
 
             <aside class="lesson-panel">
-              <div class="step-label">CURRENT LESSON</div>
+              <div class="step-label" id="modeLabel">OPENING VIEWER</div>
               <div class="lesson-top">
                 <div class="route-icon" id="routeIcon">基</div>
                 <div>
@@ -136,33 +136,62 @@
                 </div>
               </div>
 
-              <div class="progress-block">
+              <div class="viewer-controls" id="viewerControls">
+                <div class="viewer-copy">
+                  <span>定石ができるまで</span>
+                  <strong><b id="viewerStep">0</b>手目</strong>
+                </div>
+                <div class="viewer-nav">
+                  <button id="moveBackButton">← 1手戻る</button>
+                  <button id="moveForwardButton">1手進む →</button>
+                </div>
+              </div>
+
+              <div class="color-picker" id="colorPicker">
+                <span>ゲームで持つ色</span>
+                <div>
+                  <button class="color-choice active" data-color="1"><i class="black-disc"></i>黒</button>
+                  <button class="color-choice" data-color="2"><i class="white-disc"></i>白</button>
+                </div>
+              </div>
+
+              <button class="start-drill-button" id="startDrillButton">定石ゲームを開始</button>
+
+              <div class="progress-block" id="progressBlock" hidden>
                 <div class="progress-copy">
-                  <span>4手ドリル</span>
-                  <strong><b id="currentStep">1</b> / 4</strong>
+                  <span>8手ドリル</span>
+                  <strong><b id="currentStep">1</b> / 8</strong>
                 </div>
                 <div class="step-dots" id="stepDots">
+                  <span></span><span></span><span></span><span></span>
                   <span></span><span></span><span></span><span></span>
                 </div>
               </div>
 
               <div class="message-card" id="messageCard">
-                <span class="message-kicker" id="messageKicker">YOUR TURN</span>
-                <h2 id="messageTitle">黒の最善手は？</h2>
+                <span class="message-kicker" id="messageKicker">OPENING VIEWER</span>
+                <h2 id="messageTitle">定石の形を確認しよう。</h2>
                 <p id="messageText">
-                  ローズの形からスタート。盤面を見て、次の一手を選ぼう。
+                  「1手戻る」で初期配置まで戻り、手順を一手ずつ確認できます。
                 </p>
               </div>
 
+              <button class="evaluation-button" id="evaluationButton">
+                評価値を表示
+              </button>
+              <p class="evaluation-note" id="evaluationNote">
+                定石上はEdax、定石外は端末内AIで評価します。
+              </p>
+
               <div class="move-history">
                 <div class="history-head">
-                  <span>このドリルの着手</span>
-                  <button id="replayButton">最初から見る ↺</button>
+                  <span id="historyTitle">ここまでの手順</span>
+                  <button id="replayButton">定石の形へ戻す ↺</button>
                 </div>
                 <div class="history-list" id="historyList"></div>
               </div>
 
-              <div class="lesson-actions">
+              <div class="lesson-actions" id="lessonActions" hidden>
                 <button class="hint-button" id="hintButton">
                   <span>⌁</span> 1手だけヒント
                 </button>
