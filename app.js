@@ -8,10 +8,6 @@ const DIRECTIONS = [
   [-1, 1],  [0, 1],   [1, 1],
 ];
 
-// All lessons share the Rabbit → Rose starting shape.
-// The following eight plies are four learner moves and four automatic replies.
-const BASE_SEQUENCE = ["f5", "d6", "c3", "d3", "c4", "f4", "c5", "b3"];
-
 const OPENINGS = [
   {
     id: "rose-standard",
@@ -20,7 +16,7 @@ const OPENINGS = [
     name: "ローズ基本形",
     sub: "Standard / S",
     note: "まず覚える基準のかたち",
-    line: ["c2", "e3", "f2", "b5", "g4", "f6", "d2", "e2"],
+    lesson: window.OPENING_LESSONS["rose-standard"],
   },
   {
     id: "rose-flat",
@@ -29,7 +25,7 @@ const OPENINGS = [
     name: "ローズフラット",
     sub: "Flat / F",
     note: "平たく広がるローズの分岐",
-    line: ["d2", "b4", "g3", "g5", "a3", "e1", "e6", "g4"],
+    lesson: window.OPENING_LESSONS["rose-flat"],
   },
   {
     id: "mimura",
@@ -38,7 +34,7 @@ const OPENINGS = [
     name: "三村流",
     sub: "Mimura",
     note: "中央の形を見分けるルート",
-    line: ["e2", "e6", "g4", "b5", "b2", "c2", "b4", "b1"],
+    lesson: window.OPENING_LESSONS.mimura,
   },
   {
     id: "ohwaku",
@@ -47,7 +43,7 @@ const OPENINGS = [
     name: "大和久流",
     sub: "Ohwaku",
     note: "辺への展開を意識するルート",
-    line: ["f3", "f6", "d7", "e6", "b4", "f2", "b2", "c7"],
+    lesson: window.OPENING_LESSONS.ohwaku,
   },
   {
     id: "inoue",
@@ -56,7 +52,7 @@ const OPENINGS = [
     name: "井上流",
     sub: "Inoue",
     note: "右辺へ伸びる形を反復",
-    line: ["g3", "g6", "f6", "b5", "h7", "h2", "g4", "c6"],
+    lesson: window.OPENING_LESSONS.inoue,
   },
   {
     id: "tezuka",
@@ -65,7 +61,7 @@ const OPENINGS = [
     name: "手塚システム",
     sub: "Tezuka System",
     note: "システムの入口4手を覚える",
-    line: ["g4", "g3", "d7", "e3", "d2", "c2", "f2", "f3"],
+    lesson: window.OPENING_LESSONS.tezuka,
   },
 ];
 
@@ -104,16 +100,19 @@ const els = {
   chooseAnotherButton: document.querySelector("#chooseAnotherButton"),
   installGuide: document.querySelector("#installGuide"),
   installClose: document.querySelector("#installClose"),
+  turnDisc: document.querySelector("#turnDisc"),
+  turnCaption: document.querySelector("#turnCaption"),
 };
 
 let board = createInitialBoard();
 let activeOpening = null;
-let lineIndex = 0;
 let learnerStep = 0;
 let lastMove = null;
 let hintSquare = null;
 let locked = false;
 let history = [];
+let currentNode = null;
+let currentPlayer = BLACK;
 let progress = loadProgress();
 
 function createInitialBoard() {
@@ -190,25 +189,31 @@ function playMove(square, player) {
   return true;
 }
 
-function setupRosePosition() {
+function sequenceToMoves(sequence) {
+  return sequence.match(/../g) || [];
+}
+
+function setupLessonPosition() {
   board = createInitialBoard();
   let player = BLACK;
-  BASE_SEQUENCE.forEach((move) => {
+  sequenceToMoves(activeOpening.lesson.start).forEach((move) => {
     playMove(move, player);
     player = player === BLACK ? WHITE : BLACK;
   });
+  currentPlayer = player;
+  currentNode = activeOpening.lesson.tree;
 }
 
 function loadProgress() {
   try {
-    return JSON.parse(localStorage.getItem("rabbit-opening-progress")) || {};
+    return JSON.parse(localStorage.getItem("rabbit-opening-progress-v2")) || {};
   } catch {
     return {};
   }
 }
 
 function saveProgress() {
-  localStorage.setItem("rabbit-opening-progress", JSON.stringify(progress));
+  localStorage.setItem("rabbit-opening-progress-v2", JSON.stringify(progress));
 }
 
 function renderHome() {
@@ -243,17 +248,13 @@ function renderHome() {
 }
 
 function renderMiniBoard() {
-  const mini = createInitialBoard();
-  // A recognizable abstract rose-like cluster for the landing illustration.
-  const pieces = [
-    ["c3", BLACK], ["d3", WHITE], ["b3", WHITE], ["c4", BLACK],
-    ["d4", BLACK], ["e4", BLACK], ["f4", WHITE], ["c5", BLACK],
-    ["d5", BLACK], ["e5", WHITE], ["c6", WHITE], ["d6", WHITE],
-  ];
-  pieces.forEach(([square, color]) => {
-    const { x, y } = toPosition(square);
-    mini[y][x] = color;
-  });
+  const position = "...................BB.B....BBB....BWBW....WWWW.....W............";
+  const mini = Array.from({ length: 8 }, (_, y) =>
+    Array.from({ length: 8 }, (_, x) => {
+      const piece = position[x + y * 8];
+      return piece === "B" ? BLACK : piece === "W" ? WHITE : EMPTY;
+    }),
+  );
   els.miniBoard.innerHTML = "";
   mini.forEach((row) => {
     row.forEach((piece) => {
@@ -293,18 +294,18 @@ function startLesson(openingId) {
 }
 
 function resetLesson() {
-  setupRosePosition();
-  lineIndex = 0;
+  setupLessonPosition();
   learnerStep = 0;
   hintSquare = null;
   locked = false;
   history = [];
-  lastMove = BASE_SEQUENCE.at(-1);
+  lastMove = sequenceToMoves(activeOpening.lesson.start).at(-1);
   els.resultOverlay.hidden = true;
+  const colorName = currentPlayer === BLACK ? "黒" : "白";
   setMessage(
     "YOUR TURN",
-    "黒の最善手は？",
-    "ローズの形からスタート。盤面を見て、次の一手を選ぼう。",
+    `${colorName}の最善手は？`,
+    `${activeOpening.name}の分岐局面からスタート。評価値が最大になる一手を選ぼう。`,
   );
   render();
 }
@@ -316,7 +317,10 @@ function render() {
 }
 
 function renderBoard() {
-  const valid = !locked ? legalMoves(BLACK) : [];
+  const valid = !locked ? legalMoves(currentPlayer) : [];
+  const colorName = currentPlayer === BLACK ? "黒" : "白";
+  els.turnDisc.className = currentPlayer === BLACK ? "black-disc" : "white-disc";
+  els.turnCaption.textContent = `${colorName}番です。置ける場所から最善手を選んでください。`;
   els.board.innerHTML = "";
 
   for (let y = 0; y < 8; y += 1) {
@@ -369,57 +373,53 @@ function renderHistory() {
 
 function handleLearnerMove(square) {
   if (locked || !activeOpening) return;
-  const expected = activeOpening.line[lineIndex];
+  const expectedMoves = currentNode.bestMoves;
 
-  if (square !== expected) {
+  if (!expectedMoves.includes(square)) {
     locked = true;
-    hintSquare = expected;
+    hintSquare = expectedMoves[0];
+    const answers = expectedMoves.map((move) => move.toUpperCase()).join(" / ");
     setMessage(
       "MISS",
       `${square.toUpperCase()}ではない。`,
-      `この形の最善手は ${expected.toUpperCase()}。正しい場所を盤上に表示しました。`,
+      `この形の最善手は ${answers}。評価値が最大の場所を盤上に表示しました。`,
       "error",
     );
     render();
-    window.setTimeout(() => showResult(false, expected), 480);
+    window.setTimeout(() => showResult(false, answers), 480);
     return;
   }
 
-  playMove(square, BLACK);
-  history.push({ player: BLACK, square });
+  playMove(square, currentPlayer);
+  history.push({ player: currentPlayer, square });
   learnerStep += 1;
-  lineIndex += 1;
   hintSquare = null;
-  locked = true;
   setMessage(
     "CORRECT",
-    "その一手。",
-    learnerStep === 4 ? "4手すべて正解。形がひとつ、身体に入りました。" : "相手の応手を確認して、次の形へ。",
+    expectedMoves.length > 1 ? "どちらも最善手。" : "その一手。",
+    learnerStep === 4
+      ? "4手すべて正解。正しい形がひとつ、身体に入りました。"
+      : `評価値 ${currentNode.eval >= 0 ? "+" : ""}${currentNode.eval} の最善手です。次の手番へ。`,
     "success",
   );
-  render();
 
   if (learnerStep === 4) {
+    locked = true;
+    render();
     progress[activeOpening.id] = (progress[activeOpening.id] || 0) + 1;
     saveProgress();
     window.setTimeout(() => showResult(true), 650);
     return;
   }
 
-  window.setTimeout(playAutomaticReply, 560);
-}
-
-function playAutomaticReply() {
-  if (!activeOpening || learnerStep >= 4) return;
-  const reply = activeOpening.line[lineIndex];
-  playMove(reply, WHITE);
-  history.push({ player: WHITE, square: reply });
-  lineIndex += 1;
+  currentNode = currentNode.children[square];
+  currentPlayer = currentNode.turn === "black" ? BLACK : WHITE;
   locked = false;
+  const colorName = currentPlayer === BLACK ? "黒" : "白";
   setMessage(
     "YOUR TURN",
-    "次の最善手は？",
-    `白は ${reply.toUpperCase()}。盤面の変化を見て、黒の続きを選ぼう。`,
+    `${colorName}の最善手は？`,
+    "手番が替わりました。盤面の変化を見て、評価値最大の続きを選ぼう。",
   );
   render();
 }
@@ -433,23 +433,25 @@ function setMessage(kicker, title, text, state = "") {
 
 function showHint() {
   if (locked || !activeOpening) return;
-  hintSquare = activeOpening.line[lineIndex];
+  hintSquare = currentNode.bestMoves[0];
   setMessage(
     "HINT",
     `${hintSquare[0].toUpperCase()} の列を見る。`,
-    "正解のマスを点線で囲みました。座標と盤面をセットで覚えよう。",
+    currentNode.bestMoves.length > 1
+      ? `最善手は${currentNode.bestMoves.length}通りあります。そのうち1つを表示しました。`
+      : "最善手のマスを点線で囲みました。座標と盤面をセットで覚えよう。",
   );
   renderBoard();
 }
 
-function showResult(clear, expected = "") {
+function showResult(clear, expectedMoves = "") {
   els.resultDialog.classList.toggle("is-clear", clear);
   els.resultMark.textContent = clear ? "✓" : "×";
   els.resultEyebrow.textContent = clear ? "LESSON CLEAR" : "GAME OVER";
   els.resultTitle.textContent = clear ? "4手、完全正解。" : "そこで終了。";
   els.resultText.textContent = clear
-    ? `${activeOpening.name}を1回習得。忘れる前に、もう一周すると強い。`
-    : `正解は ${expected.toUpperCase()}。間違えた形だけ、すぐにもう一度やり直そう。`;
+    ? `${activeOpening.name}を1回習得。Othello! JAPAN評価エンジンの最善手を4手通過しました。`
+    : `正解は ${expectedMoves}。間違えた形だけ、すぐにもう一度やり直そう。`;
   els.tryAgainButton.textContent = clear ? "もう一周して定着させる" : "同じ定石でもう一度";
   els.resultOverlay.hidden = false;
 }
@@ -462,15 +464,16 @@ function replaySetup() {
   renderBoard();
   let player = BLACK;
   let index = 0;
+  const setupMoves = sequenceToMoves(activeOpening.lesson.start);
 
   const timer = window.setInterval(() => {
-    const move = BASE_SEQUENCE[index];
+    const move = setupMoves[index];
     playMove(move, player);
     renderBoard();
     player = player === BLACK ? WHITE : BLACK;
     index += 1;
 
-    if (index >= BASE_SEQUENCE.length) {
+    if (index >= setupMoves.length) {
       window.clearInterval(timer);
       window.setTimeout(() => {
         resetLesson();

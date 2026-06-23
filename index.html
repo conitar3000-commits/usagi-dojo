@@ -55,7 +55,7 @@
                 <em>4手ずつ</em>身体に入れる。
               </h1>
               <p class="hero-copy">
-                長い棋譜は、いったん忘れよう。形を選んで、最善手を4回。
+                長い棋譜は、いったん忘れよう。形を選んで、黒白交互に最善手を4回。
                 間違えたら即終了。だから、正しい形だけが記憶に残る。
               </p>
             </div>
@@ -82,7 +82,7 @@
             <div class="rule-number">4</div>
             <div>
               <strong>あなたが打つのは、たった4手。</strong>
-              <span>相手の応手は自動。迷いやすい分岐だけを、短く何度も。</span>
+              <span>黒と白、両方の最善手を打つ。迷いやすい分岐だけを、短く何度も。</span>
             </div>
             <div class="rule-tags">
               <span>ミスで終了</span>
@@ -121,8 +121,8 @@
                 <div class="board" id="board" role="grid" aria-label="オセロ盤"></div>
               </div>
               <p class="board-caption">
-                <span class="black-disc"></span>
-                あなたは黒。置ける場所から最善手を選んでください。
+                <span class="black-disc" id="turnDisc"></span>
+                <span id="turnCaption">手番の色で、最善手を選んでください。</span>
               </p>
             </div>
 
@@ -197,6 +197,7 @@
       <div class="share-symbol" aria-hidden="true">↑</div>
     </aside>
 
+    <script src="./openings-data.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
